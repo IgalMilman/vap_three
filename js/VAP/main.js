@@ -164,12 +164,14 @@ class Scene{
 	
 	moveSpheres(){		
 		var i = 0;
+		this.unSelectObject(this.selectedObject);
 		for (i=0; i<this.groupOfSpheres.children.length; ++i){
 			var sphere = this.groupOfSpheres.children[i];
 			sphere.position.x = sphere.dataObject[1][this.proectionSubSpace[0]];
 			sphere.position.y = sphere.dataObject[1][this.proectionSubSpace[1]];
 			sphere.position.z = sphere.dataObject[1][this.proectionSubSpace[2]];
-		}		
+		}
+		this.selectObject(this.selectedObject);
 	}
 	
 	setNewSubSpace(x1, x2, x3){
@@ -189,7 +191,7 @@ class Scene{
 		var chooseDimArray=[];
 		for (j=0; j<3; ++j){
 			var chooseDim = document.createElement("select");
-			for (i=0; i<this.dimNames.length; ++i){
+			for (i=1; i<this.dimNames.length; ++i){
 				var newEl = document.createElement("option");
 				if (this.proectionSubSpace[j]==i)
 					newEl.selected = true;
