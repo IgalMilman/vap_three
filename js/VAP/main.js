@@ -124,7 +124,6 @@ class Scene{
 		line.position.x = obj.position.x;
 		line.position.y = obj.position.y;
 		line.position.z = obj.position.z;
-		console.log(line);
 		this.selectedObject.material.color.set( invertColor(this.selectedObject.material.color) );
 		this.scene.add(line);
 	}
