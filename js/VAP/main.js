@@ -84,15 +84,13 @@ class Scene{
 		this.camera.updateProjectionMatrix();
 
 		this.renderer.setSize( this.mainDiv.clientWidth, this.mainDiv.clientHeight );
-		console.log("Resize");
 
 	}
 
 	onMouseClick( event ) {
 		event.preventDefault();
 		if ( this.selectedObject ) {
-			
-			this.selectedObject.material.color.set( invertColor(this.selectedObject.material.color) );
+			this.unSelectObject(this.selectedObject);
 			this.selectedObject = null;
 			this.outputDiv.removeChild(this.outputTable);
 		}
@@ -109,12 +107,32 @@ class Scene{
 			if ( res && res.object ) {
 
 				this.selectedObject = res.object;
-				this.selectedObject.material.color.set( invertColor(this.selectedObject.material.color) );
+				this.selectObject(this.selectedObject);
 				this.outputTable = this.printChosenElement();
 				this.outputDiv.appendChild(this.outputTable);
 			}
 
 		}
+
+	}
+	
+	selectObject(obj){
+		var geometry = new THREE.BoxBufferGeometry( 2*obj.geometry.parameters.radius, 2*obj.geometry.parameters.radius, 2*obj.geometry.parameters.radius );
+		var edges = new THREE.EdgesGeometry( geometry );
+		var line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
+		obj.selectedCircut = line;
+		line.position.x = obj.position.x;
+		line.position.y = obj.position.y;
+		line.position.z = obj.position.z;
+		console.log(line);
+		this.selectedObject.material.color.set( invertColor(this.selectedObject.material.color) );
+		this.scene.add(line);
+	}
+	
+	unSelectObject(obj){
+		this.scene.remove(obj.selectedCircut);
+		obj.selectedCircut = null;
+		this.selectedObject.material.color.set( invertColor(this.selectedObject.material.color) );
 
 	}
 
