@@ -9,7 +9,7 @@ function formGrid(){
 
 class Scene{
 	
-	constructor(mainDiv, controlsDiv, outputDiv) {
+	constructor(mainDiv, controlsDiv, outputDiv, defaultRadius, numberOfSegements) {
 			this.mainDiv = mainDiv;
 			mainDiv.sceneObject = this;
 
@@ -35,7 +35,7 @@ class Scene{
 
 			// init camera
 			this.camera = new THREE.PerspectiveCamera( 50, mainDiv.clientWidth / mainDiv.clientHeight, 1, 1000 );
-			this.camera.position.set( 80, 80, 80 );
+			this.camera.position.set(100, 100, 100);
 			this.camera.lookAt( this.scene.position );
 
 			this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
@@ -47,30 +47,30 @@ class Scene{
 			mainDiv.addEventListener( "click", function(event){this.sceneObject.onMouseClick(event);}, false );
 			
 			this.height = 10;
+			this.defaultSpRad = defaultRadius;
 			this.width = 10;
 			this.proectionSubSpace = [0,1,2];
 			this.dimNames=[];
-			this.defaultSpRad = 0.5;
 			this.controlsDiv = controlsDiv;
 			this.outputDiv = outputDiv;
+			this.numberOfSegements = numberOfSegements;
 			this.outputTable = null;
+			this.sphereGeometry = new THREE.SphereGeometry( this.defaultSpRad, this.numberOfSegements, this.numberOfSegements);
 	}
 	
 	setDimNames(dims){
 		this.dimNames = dims;
 	}
 	
-	createSphere(data, rad, col){
-		var geometry = new THREE.SphereGeometry( rad, 32, 32 );
+	createSphere(data, col){
 		var material = new THREE.MeshBasicMaterial( {color: col} );
-		var sphere = new THREE.Mesh(geometry, material);
+		var sphere = new THREE.Mesh(this.sphereGeometry, material);
 		sphere.position.x = data[1][this.proectionSubSpace[0]];
 		sphere.position.y = data[1][this.proectionSubSpace[1]];
 		sphere.position.z = data[1][this.proectionSubSpace[2]];
 		sphere.dataObject = data;
 		data[3] = sphere;
 		this.groupOfSpheres.add(sphere);
-		this.defaultSpRad = rad;
 		return	sphere;
 	}
 	
@@ -87,17 +87,20 @@ class Scene{
 
 	}
 
-	onMouseClick( event ) {
+	onMouseClick(event) {
 		event.preventDefault();
-		if ( this.selectedObject ) {
-			this.unSelectObject(this.selectedObject);
-			this.selectedObject = null;
+		if ( this.outputTable!=null ) {
+			if (this.selectedObject!=null)
+			{
+				this.unSelectObject(this.selectedObject);
+				this.selectedObject = null;
+			}
 			this.outputDiv.removeChild(this.outputTable);
+			this.outputTable = null;
 		}
 
 		this.intersects = this.getIntersects( event.layerX, event.layerY );
 		if ( this.intersects.length > 0 ) {
-
 			var res = this.intersects.filter( function ( res ) {
 
 				return res && res.object;
@@ -105,7 +108,6 @@ class Scene{
 			} )[ 0 ];
 
 			if ( res && res.object ) {
-
 				this.selectedObject = res.object;
 				this.selectObject(this.selectedObject);
 				this.outputTable = this.printChosenElement();
@@ -114,6 +116,14 @@ class Scene{
 
 		}
 
+	}
+	
+	printAllToDefault(){
+		if ( this.selectedObject ) {
+			this.outputDiv.removeChild(this.outputTable);
+		}
+		this.outputTable = this.printAllElements();
+		this.outputDiv.appendChild(this.outputTable);
 	}
 	
 	selectObject(obj){
@@ -135,7 +145,7 @@ class Scene{
 
 	}
 
-	getIntersects( x, y ) {
+	getIntersects(x, y) {
 
 		x = ( x / this.mainDiv.clientWidth ) * 2 - 1;
 		y = - ( y / this.mainDiv.clientHeight ) * 2 + 1;
@@ -147,12 +157,13 @@ class Scene{
 
 	}
 	
-	changeRad( newRad ){
+	changeRad(newRad){
 		var oldGroup = this.groupOfSpheres;
 		this.scene.remove(this.groupOfSpheres);
 		this.groupOfSpheres = new THREE.Group();
 		this.scene.add(this.groupOfSpheres);
-		
+		this.sphereGeometry = new THREE.SphereGeometry(newRad, this.numberOfSegements, this.numberOfSegements );
+		this.defaultSpRad = newRad;
 		var i = 0;
 		for (i=0; i < oldGroup.children.length; ++i){
 			if (this.selectedObject === oldGroup.children[i])
@@ -164,14 +175,16 @@ class Scene{
 	
 	moveSpheres(){		
 		var i = 0;
-		this.unSelectObject(this.selectedObject);
+		if (this.selectedObject!=null)
+			this.unSelectObject(this.selectedObject);
 		for (i=0; i<this.groupOfSpheres.children.length; ++i){
 			var sphere = this.groupOfSpheres.children[i];
 			sphere.position.x = sphere.dataObject[1][this.proectionSubSpace[0]];
 			sphere.position.y = sphere.dataObject[1][this.proectionSubSpace[1]];
 			sphere.position.z = sphere.dataObject[1][this.proectionSubSpace[2]];
 		}
-		this.selectObject(this.selectedObject);
+		if (this.selectedObject!=null)
+			this.selectObject(this.selectedObject);
 	}
 	
 	setNewSubSpace(x1, x2, x3){
@@ -193,7 +206,7 @@ class Scene{
 			var chooseDim = document.createElement("select");
 			for (i=1; i<this.dimNames.length; ++i){
 				var newEl = document.createElement("option");
-				if (this.proectionSubSpace[j]==i)
+				if (this.proectionSubSpace[j]==i-1)
 					newEl.selected = true;
 				newEl.value = i.toString();
 				newEl.text = this.dimNames[i];
@@ -237,6 +250,15 @@ class Scene{
 			this.sceneObject.resetCamera(); 
 			};
 		this.controlsDiv.appendChild(resetCameraButton);
+		
+		
+		var resetCameraButton = document.createElement("button");
+		resetCameraButton.innerText = "Print all Elements";
+		resetCameraButton.sceneObject = this;
+		resetCameraButton.onclick=function(){
+			this.sceneObject.printAllToDefault(); 
+			};
+		this.controlsDiv.appendChild(resetCameraButton);
 		this.controlsDiv.appendChild(document.createElement("br"));
 		
 	}
@@ -252,11 +274,14 @@ class Scene{
 		var i=0;
 		for(i=0; i<this.dimNames.length; ++i){
 			cell = document.createElement("th");
-			cell.innerText=this.dimNames[i].toString();
+			cell.innerText = this.dimNames[i].toString();
 			row.appendChild(cell);
 		}
+		cell = document.createElement("th");
+		cell.innerText = "Cluster";
+		row.appendChild(cell);
 		
-		var row = document.createElement("tr");
+		row = document.createElement("tr");
 		table.appendChild(row);
 		
 		cell = document.createElement("th");
@@ -266,6 +291,52 @@ class Scene{
 		for(i=0; i<this.selectedObject.dataObject[1].length; i++){
 			var cell = document.createElement("td");
 			cell.innerText = this.selectedObject.dataObject[1][i].toString();
+			row.appendChild(cell);
+		}
+		cell = document.createElement("td");
+		cell.bgColor = invertColor(this.selectedObject.material.color).getHexString();
+		row.appendChild(cell);
+		return table;
+	}
+	
+	printAllElements(){
+		var table = document.createElement("table");
+		table.classList.add("infoTableForSceneElement");
+		var row = document.createElement("tr");
+		table.appendChild(row);
+		
+		var cell = null;
+		
+		var i=0;
+		for(i=0; i<this.dimNames.length; ++i){
+			cell = document.createElement("th");
+			cell.innerText = this.dimNames[i].toString();
+			row.appendChild(cell);
+		}
+		cell = document.createElement("th");
+		cell.innerText = "Cluster";
+		row.appendChild(cell);
+		
+		var j=0;
+		for (j=0; j < this.groupOfSpheres.children.length; ++j){
+			var obj	= this.groupOfSpheres.children[j];
+			row = document.createElement("tr");
+			table.appendChild(row);
+			
+			cell = document.createElement("th");
+			cell.innerText = obj.dataObject[0].toString();
+			row.appendChild(cell);
+			
+			for(i=0; i<obj.dataObject[1].length; i++){
+				cell = document.createElement("td");
+				cell.innerText = obj.dataObject[1][i].toString();
+				row.appendChild(cell);
+			}
+			cell = document.createElement("td");
+			if (this.selectObject==obj)
+				cell.bgColor = invertColor(obj.material.color).getHexString();
+			else
+				cell.bgColor = obj.material.color.getHexString();
 			row.appendChild(cell);
 		}
 		return table;
