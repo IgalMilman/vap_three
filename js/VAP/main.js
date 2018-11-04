@@ -2,12 +2,7 @@ function invertColor(color) {
 	return new THREE.Color(1.0-color.r, 1.0-color.g, 1.0-color.b);
 }
 
-function formGrid(){
-	var grid = new THREE.GridHelper(200, 20, '#5BB', '#FFF');
-	return grid;
-}
-
-class Scene{
+class Scene {
 	
 	constructor(mainDiv, controlsDiv, outputDiv, defaultRadius, numberOfSegements) {
 			this.mainDiv = mainDiv;
@@ -41,8 +36,15 @@ class Scene{
 			this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
 			this.controls.enableRotate = true;
 			this.controls.saveState();
+
+			this.drawAxes();
+
+			this.drawGrid();
+
+			//mainDiv.addEventListener( 'resize', this.onResize, false );
+			mainDiv.addEventListener( "click", function(event){this.sceneObject.onMouseClick(event);}, false );
 			
-			this.groupOfGrid.add(formGrid());
+			// this.groupOfGrid.add(formGrid());
 			//mainDiv.addEventListener( 'resize', this.onResize, false );
 			mainDiv.addEventListener( "click", function(event){this.sceneObject.onMouseClick(event);}, false );
 			
@@ -56,6 +58,87 @@ class Scene{
 			this.numberOfSegements = numberOfSegements;
 			this.outputTable = null;
 			this.sphereGeometry = new THREE.SphereGeometry( this.defaultSpRad, this.numberOfSegements, this.numberOfSegements);
+	}
+
+	drawAxes() {
+		var axes = new THREE.AxesHelper( 50 );
+		this.addLabelAxes( axes, this.scene, 'X', 'Y', 'Z');
+		this.scene.add( axes );
+	}
+
+	drawGrid() {
+		var gridHelperXY = new THREE.GridHelper( 100, 10, 0x333333, 0x888888 );
+		this.scene.add( gridHelperXY );
+		gridHelperXY.rotation.x = -Math.PI / 2;
+		gridHelperXY.position.set( 0, 0, -1 );
+
+		var gridHelperXZ = new THREE.GridHelper( 100, 10 );
+		this.scene.add( gridHelperXZ );
+		gridHelperXZ.position.set( 0, -1, 0 );
+
+		var gridHelperYZ = new THREE.GridHelper( 100, 10 );
+		this.scene.add( gridHelperYZ );
+		gridHelperYZ.rotation.z = -Math.PI / 2;
+		gridHelperYZ.position.set( -1, 0, 0 );
+	}
+
+	addLabelAxes(axes, scene, labelX, labelY, labelZ) {
+
+		// Axes label
+		var loader = new THREE.FontLoader();
+		loader.load('fonts/optimer_regular.typeface.json',
+
+			// onLoad callback
+			function ( font ) {
+				var X = new THREE.TextGeometry(labelX, {
+					font: font,
+					size: 3,
+					height: 1,
+					curveSegments: 1,
+				});
+				var Y = new THREE.TextGeometry(labelY, {
+					font: font,
+					size: 3,
+					height: 1,
+					curveSegments: 1,
+				});
+				var Z = new THREE.TextGeometry(labelZ, {
+					font: font,
+					size: 3,
+					height: 1,
+					curveSegments: 1,
+				});
+
+				var axes_list = [X, Z, Y];
+				var colors = ['red', 'blue', 'green'];
+				var rotation = [0, Math.PI / 2, 0];
+				var z_coord = [0, 50, 0];
+
+				for ( var i=1; i<=3; i++ ) {
+					var color = new THREE.Color(colors[i-1]);
+					var textMaterial = new THREE.MeshBasicMaterial({color: color});
+					var meshText = new THREE.Mesh(axes_list[i-1], textMaterial);
+					var position = axes.geometry.attributes.position;
+					// Position of axis
+					meshText.position.x = position.getX(i);
+					meshText.position.y = position.getY(i);
+					meshText.position.z = position.getZ(i) + z_coord[i-1];
+					meshText.rotation.y = rotation[i-1];
+					scene.add( meshText );
+				}
+			},
+
+			// onProgress callback
+			function ( xhr ) {
+				console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+			},
+
+			// onError callback
+			function ( err ) {
+				console.log( 'An error happened' );
+			}
+
+		);
 	}
 	
 	setDimNames(dims){
