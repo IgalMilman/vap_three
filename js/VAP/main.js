@@ -58,28 +58,42 @@ class Scene {
 			this.numberOfSegements = numberOfSegements;
 			this.outputTable = null;
 			this.sphereGeometry = new THREE.SphereGeometry( this.defaultSpRad, this.numberOfSegements, this.numberOfSegements);
+
+
+            var FizzyText = function() {
+                  this.X = 'X';
+                  this.Y = 'Y';
+                  this.Z = 'Z';
+            }
+            this.gui = new dat.GUI();
+            var text = new FizzyText();
+            this.gui.add(text, 'X');
+            this.gui.add(text, 'Y');
+            this.gui.add(text, 'Z');
 	}
 
 	drawAxes() {
-		var axes = new THREE.AxesHelper( 50 );
+		var axes = new THREE.AxesHelper( 100 );
 		this.addLabelAxes( axes, this.scene, 'X', 'Y', 'Z');
 		this.scene.add( axes );
 	}
 
 	drawGrid() {
-		var gridHelperXY = new THREE.GridHelper( 100, 10, 0x333333, 0x888888 );
-		this.scene.add( gridHelperXY );
-		gridHelperXY.rotation.x = -Math.PI / 2;
-		gridHelperXY.position.set( 0, 0, -1 );
 
-		var gridHelperXZ = new THREE.GridHelper( 100, 10 );
-		this.scene.add( gridHelperXZ );
-		gridHelperXZ.position.set( 0, -1, 0 );
+        var gridXZ = new THREE.GridHelper(100, 10, 'gray', 'gray');
+        gridXZ.position.set( 50,-0.1,50 );
+        this.scene.add(gridXZ);
 
-		var gridHelperYZ = new THREE.GridHelper( 100, 10 );
-		this.scene.add( gridHelperYZ );
-		gridHelperYZ.rotation.z = -Math.PI / 2;
-		gridHelperYZ.position.set( -1, 0, 0 );
+        var gridXY = new THREE.GridHelper(100, 10, 'gray', 'gray');
+        gridXY.position.set( 50,50,-0.1 );
+        gridXY.rotation.x = Math.PI/2;
+        this.scene.add(gridXY);
+
+        var gridYZ = new THREE.GridHelper(100, 10, 'gray', 'gray');
+        gridYZ.position.set( -0.1,50,50 );
+        gridYZ.rotation.z = Math.PI/2;
+        this.scene.add(gridYZ);
+
 	}
 
 	addLabelAxes(axes, scene, labelX, labelY, labelZ) {
@@ -112,7 +126,7 @@ class Scene {
 				var axes_list = [X, Z, Y];
 				var colors = ['red', 'blue', 'green'];
 				var rotation = [0, Math.PI / 2, 0];
-				var z_coord = [0, 50, 0];
+				var z_coord = [0, 100, 0];
 
 				for ( var i=1; i<=3; i++ ) {
 					var color = new THREE.Color(colors[i-1]);
