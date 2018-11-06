@@ -58,18 +58,6 @@ class Scene {
 			this.numberOfSegements = numberOfSegements;
 			this.outputTable = null;
 			this.sphereGeometry = new THREE.SphereGeometry( this.defaultSpRad, this.numberOfSegements, this.numberOfSegements);
-
-
-            var FizzyText = function() {
-                  this.X = 'X';
-                  this.Y = 'Y';
-                  this.Z = 'Z';
-            }
-            this.gui = new dat.GUI();
-            var text = new FizzyText();
-            this.gui.add(text, 'X');
-            this.gui.add(text, 'Y');
-            this.gui.add(text, 'Z');
 	}
 
 	drawAxes() {
@@ -166,9 +154,10 @@ class Scene {
 		sphere.position.y = data[1][this.proectionSubSpace[1]];
 		sphere.position.z = data[1][this.proectionSubSpace[2]];
 		sphere.dataObject = data;
+        sphere.clone();
 		data[3] = sphere;
 		this.groupOfSpheres.add(sphere);
-		return	sphere;
+		return sphere;
 	}
 	
 	animate() {
@@ -258,16 +247,17 @@ class Scene {
 		var oldGroup = this.groupOfSpheres;
 		this.scene.remove(this.groupOfSpheres);
 		this.groupOfSpheres = new THREE.Group();
-		this.scene.add(this.groupOfSpheres);
-		this.sphereGeometry = new THREE.SphereGeometry(newRad, this.numberOfSegements, this.numberOfSegements );
+		this.sphereGeometry = new THREE.SphereGeometry( newRad, this.numberOfSegements, this.numberOfSegements );
 		this.defaultSpRad = newRad;
 		var i = 0;
-		for (i=0; i < oldGroup.children.length; ++i){
+		for (i=0; i < oldGroup.children.length; ++i) {
 			if (this.selectedObject === oldGroup.children[i])
-				this.selectedObject = this.createSphere(oldGroup.children[i].dataObject, newRad, oldGroup.children[i].material.color);
-			else
-				this.createSphere(oldGroup.children[i].dataObject, newRad, oldGroup.children[i].material.color);
+				this.selectedObject = this.createSphere(oldGroup.children[i].dataObject, oldGroup.children[i].material.color);
+			else {
+                var newSphere = this.createSphere(oldGroup.children[i].dataObject, oldGroup.children[i].material.color);
+            }
 		}
+        this.scene.add(this.groupOfSpheres);
 	}
 	
 	moveSpheres(){		
@@ -294,70 +284,65 @@ class Scene {
 	resetCamera(){
 		this.controls.reset();
 	}
+
+	dimensionControlElements() {
+        var chooseDimArray = [];
+		var dimensionsForm = document.getElementById("dimensions_form");
+		var XYZSelector = dimensionsForm.getElementsByTagName("select");
+        for (var i = 0; i < XYZSelector.length; i++ ) {
+            var currSelector = XYZSelector[ i ];
+            for (var j = 1; j < this.dimNames.length; j++ ) {
+                var option = document.createElement("option");
+                if (this.proectionSubSpace[ i ] == j - 1)
+					option.selected = true;
+                option.value = j.toString();
+                option.text = this.dimNames[ j ];
+                currSelector.add(option);
+            }
+            chooseDimArray.push(currSelector);
+        }
+        var changeDimBtn = document.getElementById("change_dim_btn");
+        changeDimBtn.sceneObject = this;
+		changeDimBtn.dimsSelectArray = chooseDimArray;
+		changeDimBtn.onclick=function(){
+			this.sceneObject.setNewSubSpace(parseInt(this.dimsSelectArray[0].value),
+				parseInt(this.dimsSelectArray[1].value), parseInt(this.dimsSelectArray[2].value));
+        };
+	}
+    
+    radiusControlElement() {
+        var changeRadiusBtn = document.getElementById("changeRadiusBtn");
+        var radiusRange = document.getElementById("radiusRange");
+        changeRadiusBtn.sceneObject = this;
+        radiusRange.value = this.defaultSpRad.toString();
+		changeRadiusBtn.onclick = function() {
+            var radiusRange = document.getElementById("radiusRange");
+            console.log(radiusRange.value);
+			this.sceneObject.changeRad(parseInt(radiusRange.value));
+        };
+    }
+
+    resetControls() {
+        var resetCameraBtn = document.getElementById("resetBtn");
+		resetCameraBtn.sceneObject = this;
+		resetCameraBtn.onclick = function() {
+			this.sceneObject.resetCamera();
+			};
+    }
+
+    printControls() {
+        var printAllBtn = document.getElementById("printBtn");
+        printAllBtn.sceneObject = this;
+        printAllBtn.onclick=function() {
+			this.sceneObject.printAllToDefault();
+			};
+    }
 	
 	createControlElements(){
-		var i=0;
-		var j=0;
-		var chooseDimArray=[];
-		for (j=0; j<3; ++j){
-			var chooseDim = document.createElement("select");
-			for (i=1; i<this.dimNames.length; ++i){
-				var newEl = document.createElement("option");
-				if (this.proectionSubSpace[j]==i-1)
-					newEl.selected = true;
-				newEl.value = i.toString();
-				newEl.text = this.dimNames[i];
-				chooseDim.add(newEl);
-			}
-			this.controlsDiv.appendChild(chooseDim);
-			chooseDimArray.push(chooseDim);
-		}
-		var changeDimButton = document.createElement("button");
-		changeDimButton.innerText = "Change Dimensions";
-		changeDimButton.sceneObject = this;
-		changeDimButton.dimsSelectArray = chooseDimArray;
-		changeDimButton.onclick=function(){
-			this.sceneObject.setNewSubSpace(parseInt(this.dimsSelectArray[0].value), 
-				parseInt(this.dimsSelectArray[1].value), parseInt(this.dimsSelectArray[2].value)); 
-			};
-		this.controlsDiv.appendChild(changeDimButton);
-		this.controlsDiv.appendChild(document.createElement("br"));
-		
-		
-		var newRadiusInput=document.createElement("input");
-		newRadiusInput.type="number";
-		newRadiusInput.step = 0.1;
-		newRadiusInput.value = this.defaultSpRad.toString();
-		this.controlsDiv.appendChild(newRadiusInput);
-		var changeRadiusButton = document.createElement("button");
-		changeRadiusButton.innerText = "Change Radius";
-		changeRadiusButton.sceneObject = this;
-		changeRadiusButton.radiusInput = newRadiusInput;
-		changeRadiusButton.onclick=function(){
-			this.sceneObject.changeRad(parseInt(this.radiusInput.value)); 
-			};
-		this.controlsDiv.appendChild(changeRadiusButton);
-		this.controlsDiv.appendChild(document.createElement("br"));
-		
-		
-		var resetCameraButton = document.createElement("button");
-		resetCameraButton.innerText = "Reset camera";
-		resetCameraButton.sceneObject = this;
-		resetCameraButton.onclick=function(){
-			this.sceneObject.resetCamera(); 
-			};
-		this.controlsDiv.appendChild(resetCameraButton);
-		
-		
-		var resetCameraButton = document.createElement("button");
-		resetCameraButton.innerText = "Print all Elements";
-		resetCameraButton.sceneObject = this;
-		resetCameraButton.onclick=function(){
-			this.sceneObject.printAllToDefault(); 
-			};
-		this.controlsDiv.appendChild(resetCameraButton);
-		this.controlsDiv.appendChild(document.createElement("br"));
-		
+        this.dimensionControlElements();
+        this.radiusControlElement();
+        this.resetControls();
+        this.printControls();
 	}
 	
 	printChosenElement(){
