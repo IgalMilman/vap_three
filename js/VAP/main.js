@@ -383,14 +383,16 @@ class Scene {
 	
 	printAllElements(){
 		var table = document.createElement("table");
-		table.classList.add("infoTableForSceneElement");
+        table.setAttribute("id", "table-results");
+		table.classList.add("table", "table-sm", "table-hover");
+        var thead = document.createElement("thead");
+        table.appendChild(thead);
 		var row = document.createElement("tr");
-		table.appendChild(row);
+		thead.appendChild(row);
 		
 		var cell = null;
-		
-		var i=0;
-		for(i=0; i<this.dimNames.length; ++i){
+
+		for(var i = 0; i < this.dimNames.length; ++i ) {
 			cell = document.createElement("th");
 			cell.innerText = this.dimNames[i].toString();
 			row.appendChild(cell);
@@ -398,18 +400,20 @@ class Scene {
 		cell = document.createElement("th");
 		cell.innerText = "Cluster";
 		row.appendChild(cell);
-		
-		var j=0;
-		for (j=0; j < this.groupOfSpheres.children.length; ++j){
+
+        var tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+
+		for ( var j=0; j < this.groupOfSpheres.children.length; ++j ){
 			var obj	= this.groupOfSpheres.children[j];
 			row = document.createElement("tr");
-			table.appendChild(row);
+			tbody.appendChild(row);
 			
 			cell = document.createElement("th");
 			cell.innerText = obj.dataObject[0].toString();
 			row.appendChild(cell);
 			
-			for(i=0; i<obj.dataObject[1].length; i++){
+			for(var i = 0; i < obj.dataObject[1].length; i++ ){
 				cell = document.createElement("td");
 				cell.innerText = obj.dataObject[1][i].toString();
 				row.appendChild(cell);
