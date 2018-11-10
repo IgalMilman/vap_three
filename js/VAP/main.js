@@ -7,24 +7,6 @@ function drawPlainGrid() {
 	return grid;
 }
 
-// function draw3DGrid() {
-//
-//     var gridXZ = new THREE.GridHelper(100, 10, 'gray', 'gray');
-//     gridXZ.position.set( 50,-0.1,50 );
-//     this.scene.add(gridXZ);
-//
-//     var gridXY = new THREE.GridHelper(100, 10, 'gray', 'gray');
-//     gridXY.position.set( 50,50,-0.1 );
-//     gridXY.rotation.x = Math.PI/2;
-//     this.scene.add(gridXY);
-//
-//     var gridYZ = new THREE.GridHelper(100, 10, 'gray', 'gray');
-//     gridYZ.position.set( -0.1,50,50 );
-//     gridYZ.rotation.z = Math.PI/2;
-//     this.scene.add(gridYZ);
-//
-// }
-
 class Scene {
 	
 	constructor(mainDiv, controlsDiv, outputDiv, defaultRadius, numberOfSegements) {
@@ -60,12 +42,15 @@ class Scene {
 			this.controls.enableRotate = true;
 			this.controls.saveState();
 
+            this.groupOfGrid.add(drawPlainGrid());
+
 			this.drawAxes();
 
-			//mainDiv.addEventListener( 'resize', this.onResize, false );
+            // init lights
+            this.initLight();
+
+            //mainDiv.addEventListener( 'resize', this.onResize, false );
 			mainDiv.addEventListener( "click", function(event){this.sceneObject.onMouseClick(event);}, false );
-			
-			this.groupOfGrid.add(drawPlainGrid());
 			
 			this.height = 10;
 			this.defaultSpRad = defaultRadius;
@@ -80,6 +65,35 @@ class Scene {
             this.createGui();
 	}
 
+//    draw3DGrid() {
+//
+//     var gridXZ = new THREE.GridHelper(100, 10, 'gray', 'gray');
+//     gridXZ.position.set( 50,-0.1,50 );
+//     this.scene.add(gridXZ);
+//
+//     var gridXY = new THREE.GridHelper(100, 10, 'gray', 'gray');
+//     gridXY.position.set( 50,50,-0.1 );
+//     gridXY.rotation.x = Math.PI/2;
+//     this.scene.add(gridXY);
+//
+//     var gridYZ = new THREE.GridHelper(100, 10, 'gray', 'gray');
+//     gridYZ.position.set( -0.1,50,50 );
+//     gridYZ.rotation.z = Math.PI/2;
+//     this.scene.add(gridYZ);
+//
+// }
+
+    initLight() {
+        //Create a new ambient light
+        var light = new THREE.AmbientLight( 0x888888 );
+        this.scene.add( light );
+
+        //Create a new directional light
+        var light = new THREE.DirectionalLight( 0xfdfcf0, 1 );
+        light.position.set(20,10,20);
+        this.scene.add( light );
+    }
+
     createGui() {
         this.dims_gui = new dat.GUI({ autoPlace: false });
         this.dims_gui.domElement.id = 'gui';
@@ -88,6 +102,7 @@ class Scene {
 
 	drawAxes() {
 		var axes = new THREE.AxesHelper( 100 );
+        axes.material.linewidth = 3;
 		this.addLabelAxes( axes, this.scene, 'X', 'Y', 'Z');
 		this.scene.add( axes );
 	}
@@ -157,7 +172,7 @@ class Scene {
 	}
 	
 	createSphere(data, col){
-		var material = new THREE.MeshBasicMaterial( {color: col} );
+		var material = new THREE.MeshPhongMaterial( {color: col} );
 		var sphere = new THREE.Mesh(this.sphereGeometry, material);
 		sphere.position.x = data[1][this.proectionSubSpace[0]];
 		sphere.position.y = data[1][this.proectionSubSpace[1]];
@@ -186,8 +201,7 @@ class Scene {
         if (this.dims_gui.__folders['Multidimensional Coordinates']) {
             this.dims_gui.destroy();
         }
-        if (this.selectedObject!=null)
-        {
+        if (this.selectedObject!=null) {
             this.unSelectObject(this.selectedObject);
             this.selectedObject = null;
         }
