@@ -361,8 +361,11 @@ class Scene {
         var printAllBtn = document.getElementById("printBtn");
         printAllBtn.sceneObject = this;
         printAllBtn.onclick=function() {
+            if ( document.getElementById('table-results') ) {
+			    this.outputDiv.removeChild(this.outputTable);
+		    }
 			this.sceneObject.printAllElements();
-			};
+        };
     }
 	
 	createControlElements() {
