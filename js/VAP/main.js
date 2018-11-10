@@ -2,6 +2,29 @@ function invertColor(color) {
 	return new THREE.Color(1.0-color.r, 1.0-color.g, 1.0-color.b);
 }
 
+function drawPlainGrid() {
+	var grid = new THREE.GridHelper(200, 20, '#5BB', '#FFF');
+	return grid;
+}
+
+// function draw3DGrid() {
+//
+//     var gridXZ = new THREE.GridHelper(100, 10, 'gray', 'gray');
+//     gridXZ.position.set( 50,-0.1,50 );
+//     this.scene.add(gridXZ);
+//
+//     var gridXY = new THREE.GridHelper(100, 10, 'gray', 'gray');
+//     gridXY.position.set( 50,50,-0.1 );
+//     gridXY.rotation.x = Math.PI/2;
+//     this.scene.add(gridXY);
+//
+//     var gridYZ = new THREE.GridHelper(100, 10, 'gray', 'gray');
+//     gridYZ.position.set( -0.1,50,50 );
+//     gridYZ.rotation.z = Math.PI/2;
+//     this.scene.add(gridYZ);
+//
+// }
+
 class Scene {
 	
 	constructor(mainDiv, controlsDiv, outputDiv, defaultRadius, numberOfSegements) {
@@ -39,14 +62,10 @@ class Scene {
 
 			this.drawAxes();
 
-			this.drawGrid();
-
 			//mainDiv.addEventListener( 'resize', this.onResize, false );
 			mainDiv.addEventListener( "click", function(event){this.sceneObject.onMouseClick(event);}, false );
 			
-			// this.groupOfGrid.add(formGrid());
-			//mainDiv.addEventListener( 'resize', this.onResize, false );
-			mainDiv.addEventListener( "click", function(event){this.sceneObject.onMouseClick(event);}, false );
+			this.groupOfGrid.add(drawPlainGrid());
 			
 			this.height = 10;
 			this.defaultSpRad = defaultRadius;
@@ -58,7 +77,14 @@ class Scene {
 			this.numberOfSegements = numberOfSegements;
 			this.outputTable = null;
 			this.sphereGeometry = new THREE.SphereGeometry( this.defaultSpRad, this.numberOfSegements, this.numberOfSegements);
+            this.createGui();
 	}
+
+    createGui() {
+        this.dims_gui = new dat.GUI({ autoPlace: false });
+        this.dims_gui.domElement.id = 'gui';
+        gui_container.appendChild(this.dims_gui.domElement);
+    }
 
 	drawAxes() {
 		var axes = new THREE.AxesHelper( 100 );
@@ -66,23 +92,6 @@ class Scene {
 		this.scene.add( axes );
 	}
 
-	drawGrid() {
-
-        var gridXZ = new THREE.GridHelper(100, 10, 'gray', 'gray');
-        gridXZ.position.set( 50,-0.1,50 );
-        this.scene.add(gridXZ);
-
-        var gridXY = new THREE.GridHelper(100, 10, 'gray', 'gray');
-        gridXY.position.set( 50,50,-0.1 );
-        gridXY.rotation.x = Math.PI/2;
-        this.scene.add(gridXY);
-
-        var gridYZ = new THREE.GridHelper(100, 10, 'gray', 'gray');
-        gridYZ.position.set( -0.1,50,50 );
-        gridYZ.rotation.z = Math.PI/2;
-        this.scene.add(gridYZ);
-
-	}
 
 	addLabelAxes(axes, scene, labelX, labelY, labelZ) {
 
@@ -154,8 +163,8 @@ class Scene {
 		sphere.position.y = data[1][this.proectionSubSpace[1]];
 		sphere.position.z = data[1][this.proectionSubSpace[2]];
 		sphere.dataObject = data;
-        sphere.clone();
-		data[3] = sphere;
+        //sphere.clone();
+		//data[3] = sphere;
 		this.groupOfSpheres.add(sphere);
 		return sphere;
 	}
@@ -168,23 +177,20 @@ class Scene {
 
 		this.camera.aspect = this.mainDiv.clientWidth / this.mainDiv.clientHeight;
 		this.camera.updateProjectionMatrix();
-
 		this.renderer.setSize( this.mainDiv.clientWidth, this.mainDiv.clientHeight );
 
 	}
 
 	onMouseClick(event) {
 		event.preventDefault();
-		if ( this.outputTable!=null ) {
-			if (this.selectedObject!=null)
-			{
-				this.unSelectObject(this.selectedObject);
-				this.selectedObject = null;
-			}
-			this.outputDiv.removeChild(this.outputTable);
-			this.outputTable = null;
-		}
-
+        if (this.dims_gui.__folders['Multidimensional Coordinates']) {
+            this.dims_gui.destroy();
+        }
+        if (this.selectedObject!=null)
+        {
+            this.unSelectObject(this.selectedObject);
+            this.selectedObject = null;
+        }
 		this.intersects = this.getIntersects( event.layerX, event.layerY );
 		if ( this.intersects.length > 0 ) {
 			var res = this.intersects.filter( function ( res ) {
@@ -196,20 +202,27 @@ class Scene {
 			if ( res && res.object ) {
 				this.selectedObject = res.object;
 				this.selectObject(this.selectedObject);
-				this.outputTable = this.printChosenElement();
-				this.outputDiv.appendChild(this.outputTable);
+                var gui_data = {};
+                var id = this.dimNames[0];
+                var id_value = this.selectedObject.dataObject[ 0 ][ 0 ];
+                gui_data[id] = id_value;
+                for(var i = 0; i < this.selectedObject.dataObject[1].length; i++) {
+                    gui_data[this.dimNames[i+1]] = this.selectedObject.dataObject[ 1 ][ i ]
+                }
+                console.log(gui_data);
+                this.createGui();
+                if (!this.dims_gui.__folders['Multidimensional Coordinates']) {
+                    this.dims_folder = this.dims_gui.addFolder('Multidimensional Coordinates');
+                }
+                for (var key in gui_data) {
+                    this.dims_folder.add(gui_data, key).listen();
+                }
+                this.dims_folder.open();
+
 			}
 
 		}
 
-	}
-	
-	printAllToDefault(){
-		if ( this.selectedObject ) {
-			this.outputDiv.removeChild(this.outputTable);
-		}
-		this.outputTable = this.printAllElements();
-		this.outputDiv.appendChild(this.outputTable);
 	}
 	
 	selectObject(obj){
@@ -334,51 +347,15 @@ class Scene {
         var printAllBtn = document.getElementById("printBtn");
         printAllBtn.sceneObject = this;
         printAllBtn.onclick=function() {
-			this.sceneObject.printAllToDefault();
+			this.sceneObject.printAllElements();
 			};
     }
 	
-	createControlElements(){
+	createControlElements() {
         this.dimensionControlElements();
         this.radiusControlElement();
         this.resetControls();
         this.printControls();
-	}
-	
-	printChosenElement(){
-		var table = document.createElement("table");
-		table.classList.add("infoTableForSceneElement");
-		var row = document.createElement("tr");
-		table.appendChild(row);
-		
-		var cell = null;
-		
-		var i=0;
-		for(i=0; i<this.dimNames.length; ++i){
-			cell = document.createElement("th");
-			cell.innerText = this.dimNames[i].toString();
-			row.appendChild(cell);
-		}
-		cell = document.createElement("th");
-		cell.innerText = "Cluster";
-		row.appendChild(cell);
-		
-		row = document.createElement("tr");
-		table.appendChild(row);
-		
-		cell = document.createElement("th");
-		cell.innerText = this.selectedObject.dataObject[0].toString();
-		row.appendChild(cell);
-		
-		for(i=0; i<this.selectedObject.dataObject[1].length; i++){
-			var cell = document.createElement("td");
-			cell.innerText = this.selectedObject.dataObject[1][i].toString();
-			row.appendChild(cell);
-		}
-		cell = document.createElement("td");
-		cell.bgColor = invertColor(this.selectedObject.material.color).getHexString();
-		row.appendChild(cell);
-		return table;
 	}
 	
 	printAllElements(){
@@ -425,6 +402,7 @@ class Scene {
 				cell.bgColor = obj.material.color.getHexString();
 			row.appendChild(cell);
 		}
-		return table;
+        this.outputTable = table;
+		this.outputDiv.appendChild(this.outputTable);
 	}
 }

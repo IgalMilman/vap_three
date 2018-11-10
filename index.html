@@ -36,6 +36,14 @@
             #table-results {
                 width: 80%;
             }
+            #gui_container{
+              position: absolute;
+              top: 27%;
+              left: 85%;
+            }
+            #gui{
+              transform:translate(-50%, -75px);
+            }
 		</style>
         <!-- Bootstrap -->
         <link href="./css/bootstrap.min.css" rel="stylesheet">
@@ -84,12 +92,14 @@
         </div>
         <div id="controls"></div>
         <div id="picture" class="mainPicture"></div>
+        <div id="gui_container"></div>
         <div id="output"></div>
 	</div>
 	<script src="./js/three.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
 	<script src="./js/VAP/main.js"></script>
 	<script src="./js/VAP/test.js"></script>
+    <script type="text/javascript" src="./js/dat.gui.min.js"></script>
 	<script>
 	
 		// SETTING:
