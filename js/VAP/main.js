@@ -8,7 +8,7 @@ function drawPlainGrid() {
 }
 
 class Scene {
-	
+
 	constructor(mainDiv, controlsDiv, outputDiv, defaultRadius, numberOfSegements) {
 			this.mainDiv = mainDiv;
 			mainDiv.sceneObject = this;
@@ -16,7 +16,7 @@ class Scene {
 			this.selectedObject = null;
 			this.raycaster = new THREE.Raycaster();
 			this.mouseVector = new THREE.Vector3();
-	
+
 			// init renderer
 			this.renderer = new THREE.WebGLRenderer( { antialias: true } );
 			this.renderer.setPixelRatio( window.devicePixelRatio );
@@ -51,7 +51,7 @@ class Scene {
 
             //mainDiv.addEventListener( 'resize', this.onResize, false );
 			mainDiv.addEventListener( "click", function(event){this.sceneObject.onMouseClick(event);}, false );
-			
+
 			this.height = 10;
 			this.defaultSpRad = defaultRadius;
 			this.width = 10;
@@ -95,9 +95,11 @@ class Scene {
     }
 
     createGui() {
-        this.dims_gui = new dat.GUI({ autoPlace: false });
+        //this.dims_gui = new dat.GUI({ autoPlace: false });
+		//
+		this.dims_gui = new dat.GUI();
         this.dims_gui.domElement.id = 'gui';
-        gui_container.appendChild(this.dims_gui.domElement);
+        document.getElementById("gui_container").appendChild(this.dims_gui.domElement);
     }
 
 	drawAxes() {
@@ -166,11 +168,11 @@ class Scene {
 
 		);
 	}
-	
+
 	setDimNames(dims){
 		this.dimNames = dims;
 	}
-	
+
 	createSphere(data, col){
 		var material = new THREE.MeshPhongMaterial( {color: col} );
 		var sphere = new THREE.Mesh(this.sphereGeometry, material);
@@ -183,7 +185,7 @@ class Scene {
 		this.groupOfSpheres.add(sphere);
 		return sphere;
 	}
-	
+
 	animate() {
 		this.renderer.render( this.scene, this.camera );
 	}
@@ -199,7 +201,7 @@ class Scene {
 	onMouseClick(event) {
 		event.preventDefault();
         if (this.dims_gui.__folders['Multidimensional Coordinates']) {
-            this.dims_gui.destroy();
+            this.dims_gui.removeFolder(this.dims_folder);
         }
         if (this.selectedObject!=null) {
             this.unSelectObject(this.selectedObject);
@@ -223,7 +225,6 @@ class Scene {
                 for(var i = 0; i < this.selectedObject.dataObject[1].length; i++) {
                     gui_data[this.dimNames[i+1]] = this.selectedObject.dataObject[ 1 ][ i ]
                 }
-                console.log(gui_data);
                 this.createGui();
                 if (!this.dims_gui.__folders['Multidimensional Coordinates']) {
                     this.dims_folder = this.dims_gui.addFolder('Multidimensional Coordinates');
@@ -238,7 +239,7 @@ class Scene {
 		}
 
 	}
-	
+
 	selectObject(obj){
 		var geometry = new THREE.BoxBufferGeometry( 2*obj.geometry.parameters.radius, 2*obj.geometry.parameters.radius, 2*obj.geometry.parameters.radius );
 		var edges = new THREE.EdgesGeometry( geometry );
@@ -250,7 +251,7 @@ class Scene {
 		this.selectedObject.material.color.set( invertColor(this.selectedObject.material.color) );
 		this.scene.add(line);
 	}
-	
+
 	unSelectObject(obj){
 		this.scene.remove(obj.selectedCircut);
 		obj.selectedCircut = null;
@@ -269,7 +270,7 @@ class Scene {
 		return this.raycaster.intersectObject( this.groupOfSpheres, true );
 
 	}
-	
+
 	changeRad(newRad){
 		var oldGroup = this.groupOfSpheres;
 		this.scene.remove(this.groupOfSpheres);
@@ -286,8 +287,8 @@ class Scene {
 		}
         this.scene.add(this.groupOfSpheres);
 	}
-	
-	moveSpheres(){		
+
+	moveSpheres(){
 		var i = 0;
 		if (this.selectedObject!=null)
 			this.unSelectObject(this.selectedObject);
@@ -300,14 +301,14 @@ class Scene {
 		if (this.selectedObject!=null)
 			this.selectObject(this.selectedObject);
 	}
-	
+
 	setNewSubSpace(x1, x2, x3){
 		this.proectionSubSpace[0] = x1;
 		this.proectionSubSpace[1] = x2;
 		this.proectionSubSpace[2] = x3;
 		this.moveSpheres();
 	}
-	
+
 	resetCamera(){
 		this.controls.reset();
 	}
@@ -336,7 +337,7 @@ class Scene {
 				parseInt(this.dimsSelectArray[1].value), parseInt(this.dimsSelectArray[2].value));
         };
 	}
-    
+
     radiusControlElement() {
         var changeRadiusBtn = document.getElementById("changeRadiusBtn");
         var radiusRange = document.getElementById("radiusRange");
@@ -367,14 +368,14 @@ class Scene {
 			this.sceneObject.printAllElements();
         };
     }
-	
+
 	createControlElements() {
         this.dimensionControlElements();
         this.radiusControlElement();
         this.resetControls();
         this.printControls();
 	}
-	
+
 	printAllElements(){
 		var table = document.createElement("table");
         table.setAttribute("id", "table-results");
@@ -383,7 +384,7 @@ class Scene {
         table.appendChild(thead);
 		var row = document.createElement("tr");
 		thead.appendChild(row);
-		
+
 		var cell = null;
 
 		for(var i = 0; i < this.dimNames.length; ++i ) {
@@ -402,11 +403,11 @@ class Scene {
 			var obj	= this.groupOfSpheres.children[j];
 			row = document.createElement("tr");
 			tbody.appendChild(row);
-			
+
 			cell = document.createElement("th");
 			cell.innerText = obj.dataObject[0].toString();
 			row.appendChild(cell);
-			
+
 			for(var i = 0; i < obj.dataObject[1].length; i++ ){
 				cell = document.createElement("td");
 				cell.innerText = obj.dataObject[1][i].toString();
