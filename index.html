@@ -21,7 +21,7 @@
 				overflow: auto;
 			}
 			.mainPicture{
-                height:800px;
+                height:750px;
 			}
 			.infoTableForSceneElement {
 				border-collapse: collapse;
@@ -147,7 +147,13 @@
                 </div>
             </div>
         </div>
-        <div class="container pre-scrollable" id="output"></div>
+        <div class="container pre-scrollable">
+            <div class="card border-dark mb-3">
+                <div class="card-header">Clustering results</div>
+                <div class="card-body" id="output">
+                </div>
+            </div>
+        </div>
 	</div>
 	<script src="./js/three.js"></script>
 	<script src="./js/controls/OrbitControls.js"></script>
