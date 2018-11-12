@@ -4,6 +4,7 @@ function invertColor(color) {
 
 function drawPlainGrid() {
 	var grid = new THREE.GridHelper(200, 20, '#5BB', '#FFF');
+    grid.position.y-=0.2;
 	return grid;
 }
 
