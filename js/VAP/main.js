@@ -114,68 +114,7 @@ class Scene {
 	drawAxes() {
 		var axes = new THREE.AxesHelper( 100 );
         axes.material.linewidth = 3;
-		this.addLabelAxes( axes, this.scene, 'X', 'Y', 'Z');
 		this.scene.add( axes );
-	}
-
-
-	addLabelAxes(axes, scene, labelX, labelY, labelZ) {
-
-		// Axes label
-		var loader = new THREE.FontLoader();
-		loader.load('fonts/optimer_regular.typeface.json',
-
-			// onLoad callback
-			function ( font ) {
-				var X = new THREE.TextGeometry(labelX, {
-					font: font,
-					size: 3,
-					height: 1,
-					curveSegments: 1,
-				});
-				var Y = new THREE.TextGeometry(labelY, {
-					font: font,
-					size: 3,
-					height: 1,
-					curveSegments: 1,
-				});
-				var Z = new THREE.TextGeometry(labelZ, {
-					font: font,
-					size: 3,
-					height: 1,
-					curveSegments: 1,
-				});
-
-				var axes_list = [X, Z, Y];
-				var colors = ['red', 'blue', 'green'];
-				var rotation = [0, Math.PI / 2, 0];
-				var z_coord = [0, 100, 0];
-
-				for ( var i=1; i<=3; i++ ) {
-					var color = new THREE.Color(colors[i-1]);
-					var textMaterial = new THREE.MeshBasicMaterial({color: color});
-					var meshText = new THREE.Mesh(axes_list[i-1], textMaterial);
-					var position = axes.geometry.attributes.position;
-					// Position of axis
-					meshText.position.x = position.getX(i);
-					meshText.position.y = position.getY(i);
-					meshText.position.z = position.getZ(i) + z_coord[i-1];
-					meshText.rotation.y = rotation[i-1];
-					scene.add( meshText );
-				}
-			},
-
-			// onProgress callback
-			function ( xhr ) {
-				console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-			},
-
-			// onError callback
-			function ( err ) {
-				console.log( 'An error happened' );
-			}
-
-		);
 	}
 
 	setDimNames(dims){
