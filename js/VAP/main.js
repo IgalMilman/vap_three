@@ -8,6 +8,11 @@ function drawPlainGrid() {
 	return grid;
 }
 
+function removeElement(id) {
+    var elem = document.getElementById(id);
+    return elem.parentNode.removeChild(elem);
+}
+
 class Scene {
 
 	constructor(mainDiv, controlsDiv, outputDiv, defaultRadius, numberOfSegements) {
@@ -64,6 +69,7 @@ class Scene {
 			this.outputTable = null;
 			this.sphereGeometry = new THREE.SphereGeometry( this.defaultSpRad, this.numberOfSegements, this.numberOfSegements);
             this.createGui();
+            this.getClusterAlgorithm();
 	}
 
 //    draw3DGrid() {
@@ -338,6 +344,59 @@ class Scene {
 				parseInt(this.dimsSelectArray[1].value), parseInt(this.dimsSelectArray[2].value));
         };
 	}
+
+    // {'parameter1': self.parameter1, 'parameter2': self.parameter2, 'parameter3': self.parameter3}
+    getClusterAlgorithm() {
+        this.parameters_str = '{"Number of clusters": 10}'; // example json string
+        this.parameters_dict = JSON.parse(this.parameters_str);
+        var e = document.getElementById("cluster-selector");
+        this.algorithm = e.options[e.selectedIndex].value;
+        var self = this;
+        e.addEventListener('change', function (e) {
+            if (document.getElementById("cluster-params")) {
+                removeElement("cluster-params");
+            }
+            var alg = e.target.value;
+            var params_div = document.createElement("div");
+            params_div.setAttribute("id", "cluster-params");
+            params_div.classList.add("form-group");
+            document.getElementById("cluster_form").appendChild(params_div);
+            switch(alg) {
+              case 'K-Means':
+                var form = document.createElement("div");
+                form.classList.add("form-group");
+                params_div.appendChild(form);
+                for ( var key in self.parameters_dict ) {
+                    if (self.parameters_dict.hasOwnProperty(key)) {
+                        var val = self.parameters_dict[key];
+                        var label = document.createElement("label");
+                        label.setAttribute("for", key);
+                        label.textContent = key;
+                        var input = document.createElement("input");
+                        input.classList.add("form-control-sm");
+                        input.setAttribute("type", "text");
+                        input.setAttribute("placeholder", val);
+                        input.setAttribute("id", key);
+                        form.appendChild(label);
+                        form.appendChild(input);
+                    }
+                }
+                break;
+
+              case 'DBSCAN':
+                  if (document.getElementById("cluster-params")) {
+                    removeElement("cluster-params");
+                  }
+                  break;
+            }
+        });
+    }
+
+
+    // read algorithm parameters from json file
+    setAlgorithmParams() {
+        
+    }
 
     radiusControlElement() {
         var changeRadiusBtn = document.getElementById("changeRadiusBtn");
