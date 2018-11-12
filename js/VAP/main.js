@@ -63,6 +63,7 @@ class Scene {
 			this.width = 10;
 			this.proectionSubSpace = [0,1,2];
 			this.dimNames=[];
+            this.dataArray = [];
 			this.controlsDiv = controlsDiv;
 			this.outputDiv = outputDiv;
 			this.numberOfSegements = numberOfSegements;
@@ -70,6 +71,7 @@ class Scene {
 			this.sphereGeometry = new THREE.SphereGeometry( this.defaultSpRad, this.numberOfSegements, this.numberOfSegements);
             this.createGui();
             this.getClusterAlgorithm();
+
 	}
 
 //    draw3DGrid() {
@@ -179,6 +181,10 @@ class Scene {
 	setDimNames(dims){
 		this.dimNames = dims;
 	}
+
+    setDataArray(dataArray) {
+        this.dataArray = dataArray;
+    }
 
 	createSphere(data, col){
 		var material = new THREE.MeshPhongMaterial( {color: col} );
@@ -435,6 +441,46 @@ class Scene {
         this.resetControls();
         this.printControls();
 	}
+
+    // print fragment of the initial dataset
+    // nrows = the number of rows
+    printInitialDataset(nrows) {
+        var initial_dataset = document.getElementById("initial-dataset");
+        var table = document.createElement("table");
+        table.setAttribute("id", "dataset");
+		table.classList.add("table", "table-sm", "table-hover");
+        var thead = document.createElement("thead");
+        table.appendChild(thead);
+		var row = document.createElement("tr");
+		thead.appendChild(row);
+        var cell = null;
+        for(var i = 0; i < this.dimNames.length; ++i ) {
+			cell = document.createElement("th");
+			cell.innerText = this.dimNames[i].toString();
+			row.appendChild(cell);
+		}
+        var tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+        console.log(this.dataArray);
+        for ( var j=0; j < nrows; ++j ){
+			var obj	= this.dataArray[j];
+			row = document.createElement("tr");
+			tbody.appendChild(row);
+
+			cell = document.createElement("th");
+			cell.innerText = obj[0].toString();
+			row.appendChild(cell);
+
+			for(var i = 0; i < obj[1].length; i++ ){
+				cell = document.createElement("td");
+				cell.innerText = obj[1][i].toString();
+				row.appendChild(cell);
+			}
+		}
+        this.outputTable = table;
+		this.outputDiv.appendChild(this.outputTable);
+        initial_dataset.appendChild(table);
+    }
 
 	printAllElements(){
 		var table = document.createElement("table");
