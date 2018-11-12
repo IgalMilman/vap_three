@@ -104,9 +104,9 @@ class Scene {
     }
 
     createGui() {
-        //this.dims_gui = new dat.GUI({ autoPlace: false });
+        this.dims_gui = new dat.GUI({ autoPlace: false });
 		//
-		this.dims_gui = new dat.GUI();
+		//this.dims_gui = new dat.GUI();
         this.dims_gui.domElement.id = 'gui';
         document.getElementById("gui_container").appendChild(this.dims_gui.domElement);
     }
